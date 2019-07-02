@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+            <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
+    </head>
+    <body>
+        <p id="prediction">Prediction(100):  </p>
+        <script>
+            async function run(){
+            const model=tf.sequential();
+            model.add(
+                tf.layers.dense({
+                    units:1,
+                    inputShape:[1],
+                    
+                })
+            );
+            model.compile({
+                loss:'meanSquaredError',
+                optimizer: 'sgd',
+                metrics: ['mse']
+            });
+            const xs = tf.tensor1d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+            const ys = tf.tensor1d([2, 5, 8, 12, 14, 18, 21, 23, 26, 29]);
+            await model.fit(xs, ys, {epochs:100});
+            document.getElementById('prediction').innerText+=
+            model.predict(tf.tensor1d([100])).dataSync();
+            }
+            run();
+        </script>
+    </body>
+</html>
