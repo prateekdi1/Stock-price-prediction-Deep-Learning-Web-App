@@ -55,16 +55,16 @@ class Dictaphone extends Component {
     }
     console.log(transcript)
     let transcript1 = transcript;
-    let showflag = 0;
-let numdays = 1 ;
-let stkName = '';
-let transcriptcount = 0;
+     showflag = 0;
+    numdays = 1 ;
+     stkName = '';
+    let transcriptcount = 0;
     let finalText ='';
     let transcriptArr = transcript1.split(' ')
-    if(transcriptArr.length>0)
+    if(transcriptArr.length>1)
     {
       transcriptcount = 1;
-      console.log(transcriptcount)
+      console.log(transcriptcount, transcriptArr.length)
     }
 
     let j1 = 0;

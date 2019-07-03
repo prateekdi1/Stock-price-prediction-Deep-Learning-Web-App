@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
+import {Bar, Line, Pie} from 'react-chartjs-2';
 import './App.css';
+import {_} from 'lodash';
 import axios from 'axios';
+import Chart from 'chart.js';
+
 //import Appmain from './App_main';
-//import SpeechRecognition from './speech';
-import SpeechRecognition from 'react-speech-recognition';
+import SpeechRecognition from './speech';
+//import SpeechRecognition from 'react-speech-recognition';
 import PropTypes from 'prop-types';
 
 import * as tf from "@tensorflow/tfjs";
@@ -18,146 +22,146 @@ let propsStk='';
 let propsShowFlags='';
 let propsDays=1;
 let countflag = 0;
-
-
+let loss_chart = [];
+let hist_chart = [];
 var Dates = [];
 var showflag = 0;
 var numdays = 1 ;
 var stkName = '';
 let transcriptcount = 0;
 
-const propTypes = {
-    // Props injected by SpeechRecognition
-    transcript: PropTypes.string,
-    interimTranscript: PropTypes.string,
-    finalTranscript: PropTypes.string,
-    resetTranscript: PropTypes.func,
-    startListening: PropTypes.func,
-    stopListening: PropTypes.func,
-    recognition: PropTypes.object,
-    browserSupportsSpeechRecognition: PropTypes.bool,
-    listening :PropTypes.bool
-  };
+// const propTypes = {
+//     // Props injected by SpeechRecognition
+//     transcript: PropTypes.string,
+//     interimTranscript: PropTypes.string,
+//     finalTranscript: PropTypes.string,
+//     resetTranscript: PropTypes.func,
+//     startListening: PropTypes.func,
+//     stopListening: PropTypes.func,
+//     recognition: PropTypes.object,
+//     browserSupportsSpeechRecognition: PropTypes.bool,
+//     listening :PropTypes.bool
+//   };
 
-class Dictaphone extends Component {
-    constructor(props){
-      super(props);
-      this.state ={
-        flag : 0,
-        showflag: 0,
-        stkName: '',
-        numdays: 1
-      }
-    }
+// class Dictaphone extends Component {
+//     constructor(props){
+//       super(props);
+//       this.state ={
+//         flag : 0,
+//         showflag: 0,
+//         stkName: '',
+//         numdays: 1
+//       }
+//     }
 
-    // callHandler=(e)=>{
-    //   this.props.SpeechUpdate(stkName, showflag,numdays);
-    // }
-  render() {
-    const { transcript,
-            interimtranscript,
-            finaltranscript,
-            resetTranscript,
-            startListening,
-            stopListening,
-            recognition= {lang:'en-UK'},
-            browserSupportsSpeechRecognition,
-            listening } = this.props
+//     // callHandler=(e)=>{
+//     //   this.props.SpeechUpdate(stkName, showflag,numdays);
+//     // }
+//   render() {
+//     const { transcript,
+//             interimtranscript,
+//             finaltranscript,
+//             resetTranscript,
+//             startListening,
+//             stopListening,
+//             recognition= {lang:'en-UK'},
+//             browserSupportsSpeechRecognition,
+//             listening } = this.props
 
-    if (!browserSupportsSpeechRecognition) {
-      return null
-    }
-    console.log(transcript)
-    let transcript1 = transcript;
-    showflag = 0;
-    numdays = 1 ;
-    stkName = '';
-    let transcriptcount = 0;
-    let finalText ='';
-    let transcriptArr = transcript1.split(' ')
-    if(transcriptArr.length>0)
-    {
-      transcriptcount = 1;
-      console.log(transcriptcount)
-    }
+//     if (!browserSupportsSpeechRecognition) {
+//       return null
+//     }
+//     console.log(transcript)
+//     let transcript1 = transcript;
+//     showflag = 0;
+//     numdays = 1 ;
+//     stkName = '';
+//     let transcriptcount = 0;
+//     let finalText ='';
+//     let transcriptArr = transcript1.split(' ')
+//     if(transcriptArr.length>0)
+//     {
+//       transcriptcount = 1;
+//       console.log(transcriptcount)
+//     }
 
-    let j1 = 0;
-        let k1 = 0;
-        let predictioncounter = 0;
-        let j_value = 0;
+//     let j1 = 0;
+//         let k1 = 0;
+//         let predictioncounter = 0;
+//         let j_value = 0;
 
-        if(!listening && transcriptcount==1) {
-          console.log('listening stopped');
-          console.log(transcriptArr);
+//         if(!listening && transcriptcount==1) {
+//           console.log('listening stopped');
+//           console.log(transcriptArr);
 
-        for (j1 = 0; j1< transcriptArr.length; j1++){
-          if ((transcriptArr[j1]==='predictions' || transcriptArr[j1]==='prediction' ||
-              transcriptArr[j1]==='predict' || transcriptArr[j1]==='predict') &&
-              (transcriptArr[j1+1]==='of' || transcriptArr[j1+1]==='for')){
-                predictioncounter = 1;
-                showflag=1;
-                j_value = j1;
-              }}
+//         for (j1 = 0; j1< transcriptArr.length; j1++){
+//           if ((transcriptArr[j1]==='predictions' || transcriptArr[j1]==='prediction' ||
+//               transcriptArr[j1]==='predict' || transcriptArr[j1]==='predict') &&
+//               (transcriptArr[j1+1]==='of' || transcriptArr[j1+1]==='for')){
+//                 predictioncounter = 1;
+//                 showflag=1;
+//                 j_value = j1;
+//               }}
               
-                for(  k1 =0; k1<transcriptArr.length;k1++)
-                {
-                  if ((transcriptArr[k1]==='dont' || //transcriptArr[k1]==='do not' ||
-                        transcriptArr[k1]==='not')&& predictioncounter==1){
-                          showflag=2;
-                          //this.props.SpeechUpdate(stkName, showflag, numdays)
-                            console.log(stkName);
-                            //console.log(temparr);
-                            console.log(showflag);
-                      }}
+//                 for(  k1 =0; k1<transcriptArr.length;k1++)
+//                 {
+//                   if ((transcriptArr[k1]==='dont' || //transcriptArr[k1]==='do not' ||
+//                         transcriptArr[k1]==='not')&& predictioncounter==1){
+//                           showflag=2;
+//                           //this.props.SpeechUpdate(stkName, showflag, numdays)
+//                             console.log(stkName);
+//                             //console.log(temparr);
+//                             console.log(showflag);
+//                       }}
 
-                      if(showflag===1){
-                        console.log(j_value);
-                            let temparr = transcriptArr.slice(-(transcriptArr.length -j_value-2))
-                              if(temparr[temparr.length - 1]==='please') {
-                               let temparr1 = temparr.slice(0,-1) 
-                               stkName = temparr1.join(" "); 
-                              // this.props.SpeechUpdate(stkName, showflag, numdays);
-                              }
-                              else {
-                               stkName = temparr.join(" ");
-                              // this.props.SpeechUpdate(stkName, showflag, numdays);
-                              }
-                                console.log(stkName);
-                                console.log(temparr);
-                                console.log(showflag);
-                                j_value=0;
-                      }
-                      else {
-                        showflag=3;
-                        console.log(stkName);
-                        console.log(showflag);
-                        //this.props.SpeechUpdate(stkName, showflag, numdays);
-                      }
+//                       if(showflag===1){
+//                         console.log(j_value);
+//                             let temparr = transcriptArr.slice(-(transcriptArr.length -j_value-2))
+//                               if(temparr[temparr.length - 1]==='please') {
+//                                let temparr1 = temparr.slice(0,-1) 
+//                                stkName = temparr1.join(" "); 
+//                               // this.props.SpeechUpdate(stkName, showflag, numdays);
+//                               }
+//                               else {
+//                                stkName = temparr.join(" ");
+//                               // this.props.SpeechUpdate(stkName, showflag, numdays);
+//                               }
+//                                 console.log(stkName);
+//                                 console.log(temparr);
+//                                 console.log(showflag);
+//                                 j_value=0;
+//                       }
+//                       else {
+//                         showflag=3;
+//                         console.log(stkName);
+//                         console.log(showflag);
+//                         //this.props.SpeechUpdate(stkName, showflag, numdays);
+//                       }
         
-    }
+//     }
 
-    // if(showflag===1 && !listening)
-    // { console.log('calling parent function');
-    //   this.props.SpeechUpdate(stkName, showflag, numdays);
-    // }
+//     // if(showflag===1 && !listening)
+//     // { console.log('calling parent function');
+//     //   this.props.SpeechUpdate(stkName, showflag, numdays);
+//     // }
 
-    return (
-      <div>
-        <button onClick={resetTranscript}>Reset</button>
-        <button onClick={startListening}>Start</button>
-        <button onClick={stopListening}>Stop</button>
-        <span>{transcript} 
+//     return (
+//       <div>
+//         <button onClick={resetTranscript}>Reset</button>
+//         <button onClick={startListening}>Start</button>
+//         <button onClick={stopListening}>Stop</button>
+//         <span>{transcript} 
       
-        </span>
+//         </span>
         
-      </div>
-    )
-  }
-}
+//       </div>
+//     )
+//   }
+// }
 
-Dictaphone.propTypes = propTypes;
+// Dictaphone.propTypes = propTypes;
 
-let Speech_rec =  SpeechRecognition({autoStart: true, continuous: false})(Dictaphone);
+// let Speech_rec =  SpeechRecognition({autoStart: true, continuous: false})(Dictaphone);
 
 
 
@@ -184,7 +188,7 @@ class App extends Component {
     StockName: '',
     User_input_StockName: '',
     label: "Click Here",
-    epoch_num : 0,
+    no_of_epochs : 10,
     market_type :'' ,
     region: '',
     marketopen:'',
@@ -196,10 +200,16 @@ class App extends Component {
     final_transcript:'',
     speechrec:'',
     Dates : [],
-    cnnflag: 1
+    cnnflag: 1,
+    loss_arr:[],
+    mse_arr:[],
+    learning_rate : 0.1,
+    optimizer:'adam',
+    test_split_percent:0.2,
+    model_trained:0
 }
-  // this.SpeechUpdate = this.SpeechUpdate.bind(this);
- // this.loadData= this.loadData.bind(this);
+//   this.SpeechUpdate = this.SpeechUpdate.bind(this);
+//  this.loadData= this.loadData.bind(this);
 }
 
 // SpeechUpdate =(stkcode,showflag,numdays)=>{
@@ -207,36 +217,35 @@ class App extends Component {
 //   propsStk= stkcode;
 //   propsShowFlags=showflag;
 //   propsDays=numdays;
-//   //let prevcountflag = countflag;
   
 //   let prevcountflag = countflag;
 //   countflag = countflag+1;
 //   console.log(stkcode, showflag, numdays,countflag);
-// // //  if(countflag-prevcountflag ===1){
-// //     this.setState({ flagtoInititate:1,
-// //                    // props_stk:stkcode,
-// //                     props_show_flags:showflag,
-// //                     props_num_of_days:numdays});
-// // //  //}
-// //  console.log( this.state.flagtoInititate);
-// //  console.log( this.state.props_stk);
-// //  console.log( this.state.props_show_flags);
+//  if(countflag-prevcountflag ===1){
+//     this.setState({ flagtoInititate:1,
+//                    props_stk:stkcode,
+//                     props_show_flags:showflag,
+//                     props_num_of_days:numdays});
+//  }
+//  console.log( this.state.flagtoInititate);
+//  console.log( this.state.props_stk);
+//  console.log( this.state.props_show_flags);
 // }
 
-loadData = (e)=>
-{
-if(showflag ===1)
-{
-  this.setState({User_input_StockName: stkName,
-                  props_show_flags : showflag
-                  });
-                  this.gettingName_to_Ticker();
-}
-else {
-this.setState({errormsg: "Couldn't recognize the voice"});
-console.log(showflag);
-}
-}
+// loadData = (e)=>
+// {
+// if(showflag ===1)
+// {
+//   this.setState({User_input_StockName: stkName,
+//                   props_show_flags : showflag
+//                   });
+//                   this.gettingName_to_Ticker();
+// }
+// else {
+// this.setState({errormsg: "Couldn't recognize the voice"});
+// console.log(showflag);
+// }
+// }
 
 
 gettingName_to_Ticker = async (e)=>{
@@ -283,8 +292,6 @@ gettingName_to_Ticker = async (e)=>{
         timezone = Object.values(arr1[i])[6];
         currency = Object.values(arr1[i])[7];
       }
-
-
 
 
       
@@ -336,6 +343,7 @@ gettingdata = async (e)=>{
     let close = [];
     let high = [];
     let low = [];
+    let dates = [];
 
     try{
         await axios.get(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${this.state.StockCode}&outputsize=full&apikey=${API_KEY}`)
@@ -346,7 +354,8 @@ gettingdata = async (e)=>{
         Dates = Object.getOwnPropertyNames(rawData.data['Time Series (Daily)']);
         var arr1 = Object.values(rawData.data['Time Series (Daily)']);
         console.log(arr1);
-
+        //let datesreverse = Dates.reverse();
+       // console.log(datesreverse);
         console.log(Object.values(arr1[0]));
 
         for(let i =0; i<500;i++)
@@ -354,6 +363,7 @@ gettingdata = async (e)=>{
           close[i] = parseFloat(Object.values(arr1[i])[3]);  
           high[i] = parseFloat(Object.values(arr1[i])[1]);
           low[i] = parseFloat(Object.values(arr1[i])[2]);
+          dates[i] = Dates [i];
         }
 
 
@@ -362,10 +372,11 @@ gettingdata = async (e)=>{
                        close:close.reverse(),
                         high:high.reverse(),
                         low:low.reverse(),
-                        Dates: Dates.reverse(),
+                        Dates: dates.reverse(),
                         loaded: true});
 
-                        console.log(this.state.open);
+                        console.log(this.state.close);
+                        console.log(this.state.Dates);
         }
     );} 
 
@@ -396,9 +407,9 @@ gettingdata = async (e)=>{
   if(this.state.cnnflag ===1) {
      
     // Data preperation and model training CNN
-        const learning_rate = 0.1;
-        const no_of_epochs = 10;
-        const optimizer = tf.train.adam(learning_rate);
+        
+        
+        const optimizer = tf.train.adam(this.state.learning_rate);
 
         const full_input_data = [];
         const full_target_data = this.state.close;
@@ -407,7 +418,7 @@ gettingdata = async (e)=>{
         const training_output_data = [];
         const actual_data =[];
 
-        const test_split_percent = 0.2;
+        const test_split_percent = this.state.test_split_percent;
 
 
         for(let k =0; k<500;k++)
@@ -469,7 +480,7 @@ gettingdata = async (e)=>{
         const startTime = Date.now();
         this.setState({errormsg:"Training the model..."});
         model.fit(trainset,trainset_output,
-                  {epochs: no_of_epochs, 
+                  {epochs: this.state.no_of_epochs, 
                    
                    callbacks: {
                                 onEpochEnd: async(epoch)=>{
@@ -494,6 +505,9 @@ gettingdata = async (e)=>{
           var arr_mse = Object.values(history['history']['mse']);
           console.log(arr_loss);
           console.log(arr_mse);
+          this.setState({ loss_arr : arr_loss,
+                          mse_arr : arr_mse,
+                          model_trained : 1});
 
         }) }
       //   trainset.dispose();
@@ -571,17 +585,157 @@ gettingdata = async (e)=>{
     this.setState({User_input_StockName: event.target.value});
   }
 
+
   
   render() {
 
+    if(this.state.model_trained ===1)
+    { 
+            let data_hist =
+                  {
+                    labels :  this.state.Dates,
+                    datasets: [
+                            {
+                    label: 'Price in US Dollars',
+                    backgroundColor:[
+                          'rgba(255, 0, 255, 0.6)',
+                          'rgba(255, 0, 255, 0.6)',
+                          'rgba(255, 0, 255, 0.6)',
+                          'rgba(255, 0, 255, 0.6)',
+                          'rgba(255, 0, 255, 0.6)',
+                          'rgba(255, 0, 255, 0.6)',
+                          'rgba(255, 0, 255, 0.6)',
+                          'rgba(255, 0, 255, 0.6)'],
+                    borderColor: 'rgba(255,50,132,1)',
+                    borderWidth: 1,
+                    hoverBackgroundColor: 'rgba(255,99,132,0.4)',
+                    hoverBorderColor: 'rgba(255,99,132,1)',
+                    data: this.state.close,
+                    type: 'line',
+                    fill: true
+                  }]}
+         hist_chart = [];
+        hist_chart.push(  
+              <div style={{display: 'inline-block',width: '650px',height: '325px',padding: '5px',margin:'5px' ,border: '2px solid blue'}}>
+              <Line 
+                   data ={data_hist}
+                   options={{
+                             responsive: true,
+                             hoverMode: 'index',
+                             title:{
+                                 display:true,
+                                 text:'Variation in Price',
+                                 fontSize:25
+                                   },
+                             legend:{
+                                 display:true,
+                                 position:'right'
+                                     },
+                             animation: {
+                                 duration: 3000,
+                                 easing: 'easeInBounce',
+                                       // onProgress: function(animation) {
+                                       //    progress.value = animation.animationObject.currentStep / animation.animationObject.numSteps;
+                                       // }
+                                     },
+                             scales: {
+                                 yAxes: [{
+                                     type: 'linear', 
+                                     display: true,
+                                     position: 'left',
+                                       }]
+                                   },
+                                   tooltips: {
+                                     mode: "label"
+                                   }}} />
+                                   </div>
+            )
+   
+
+
+      let epoch_arr = [];
+          for ( let u=1; u<this.state.no_of_epochs+1; u++ )
+          {
+            epoch_arr.push(u);
+          }
+      console.log(epoch_arr);
+          let data_mse =
+                {
+                  labels :  epoch_arr,
+                  datasets: [
+                          {
+                  label: 'Mean Square Error',
+                  backgroundColor:[
+                        'rgba(255, 0, 255, 0.6)',
+                        'rgba(255, 0, 255, 0.6)',
+                        'rgba(255, 0, 255, 0.6)',
+                        'rgba(255, 0, 255, 0.6)',
+                        'rgba(255, 0, 255, 0.6)',
+                        'rgba(255, 0, 255, 0.6)',
+                        'rgba(255, 0, 255, 0.6)',
+                        'rgba(255, 0, 255, 0.6)'],
+                  borderColor: 'rgba(255,50,132,1)',
+                  borderWidth: 1,
+                  hoverBackgroundColor: 'rgba(255,99,132,0.4)',
+                  hoverBorderColor: 'rgba(255,99,132,1)',
+                  data: this.state.mse_arr,
+                  type: 'line',
+                  fill: true
+                }]}
+      loss_chart = [];
+      loss_chart.push(  
+            <div style={{display: 'inline-block',width: '650px',height: '325px',padding: '5px',margin:'5px' ,border: '2px solid blue'}}>
+            <Line 
+                 data ={data_mse}
+                 options={{
+                           responsive: true,
+                           hoverMode: 'index',
+                           title:{
+                               display:true,
+                               text:'Mean Square error  Vs  Epochs',
+                               fontSize:25
+                                 },
+                           legend:{
+                               display:true,
+                               position:'right'
+                                   },
+                           animation: {
+                               duration: 3000,
+                               easing: 'easeInBounce',
+                                     // onProgress: function(animation) {
+                                     //    progress.value = animation.animationObject.currentStep / animation.animationObject.numSteps;
+                                     // }
+                                   },
+                           scales: {
+                               yAxes: [{
+                                   type: 'linear', 
+                                   display: true,
+                                   position: 'left',
+                                     }]
+                                 },
+                                 tooltips: {
+                                   mode: "label"
+                                 }}} />
+                                 </div>
+          )
+    }
+
     
+
+
+
+
+
+
+
+
     return (
       <div>
         <header className="App-header">
           <div className="App">
         <img src={logo} className="App-logo" alt="logo" />
             <div> 
-            <Speech_rec> {this.loadData.bind()}</Speech_rec>
+            {/* <SpeechRecognition> {this.loadData.bind()}</SpeechRecognition> */}
             {this.loadData}
               <p>{this.state.errormsg}</p>
               <p>{this.state.StockCode}</p>
@@ -604,8 +758,10 @@ gettingdata = async (e)=>{
                 value = {this.state.User_input_StockName}
                 onChange={this.handleChange_input}
                 />
-              <button onClick={this.loadData}>Click</button>
-                </div>          
+              <button onClick={this.wrapperFunction1}>Click</button>
+                </div> 
+                {loss_chart[0]} 
+                {hist_chart[0]}       
             </div>
         </div>
       </header>    
