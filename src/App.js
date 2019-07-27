@@ -5,10 +5,13 @@ import './App.css';
 import {_} from 'lodash';
 import axios from 'axios';
 import Chart from 'chart.js';
-
+// import Switch from 'react-toggle-switch';
+// import Button from 'react-bootstrap/Button';
+// import ToggleButton from 'react-bootstrap/ToggleButton'
+// import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 //import Appmain from './App_main';
-import SpeechRecognition from './speech';
-//import SpeechRecognition from 'react-speech-recognition';
+//import SpeechRecognition from './speech';
+import SpeechRecognition from 'react-speech-recognition';
 import PropTypes from 'prop-types';
 
 import * as tf from "@tensorflow/tfjs";
@@ -29,139 +32,149 @@ var showflag = 0;
 var numdays = 1 ;
 var stkName = '';
 let transcriptcount = 0;
+var global_stock_name = '';
+var global_show_flag = 0;
 
-// const propTypes = {
-//     // Props injected by SpeechRecognition
-//     transcript: PropTypes.string,
-//     interimTranscript: PropTypes.string,
-//     finalTranscript: PropTypes.string,
-//     resetTranscript: PropTypes.func,
-//     startListening: PropTypes.func,
-//     stopListening: PropTypes.func,
-//     recognition: PropTypes.object,
-//     browserSupportsSpeechRecognition: PropTypes.bool,
-//     listening :PropTypes.bool
-//   };
+const propTypes = {
+    // Props injected by SpeechRecognition
+    transcript: PropTypes.string,
+    interimTranscript: PropTypes.string,
+    finalTranscript: PropTypes.string,
+    resetTranscript: PropTypes.func,
+    startListening: PropTypes.func,
+    stopListening: PropTypes.func,
+    recognition: PropTypes.object,
+    browserSupportsSpeechRecognition: PropTypes.bool,
+    listening :PropTypes.bool
+  };
 
-// class Dictaphone extends Component {
-//     constructor(props){
-//       super(props);
-//       this.state ={
-//         flag : 0,
-//         showflag: 0,
-//         stkName: '',
-//         numdays: 1
-//       }
-//     }
+class Dictaphone extends Component {
+    constructor(props){
+      super(props);
+      this.state ={
+        flag : 0,
+        showflag: 0,
+        stkName: '',
+        numdays: 1,
+        tran_array:[]
+      }
+    }
 
-//     // callHandler=(e)=>{
-//     //   this.props.SpeechUpdate(stkName, showflag,numdays);
-//     // }
-//   render() {
-//     const { transcript,
-//             interimtranscript,
-//             finaltranscript,
-//             resetTranscript,
-//             startListening,
-//             stopListening,
-//             recognition= {lang:'en-UK'},
-//             browserSupportsSpeechRecognition,
-//             listening } = this.props
+    // callHandler=(e)=>{
+    //   this.props.SpeechUpdate(stkName, showflag,numdays);
+    // }
+  render() {
+    const { transcript,
+            interimtranscript,
+            finaltranscript,
+            resetTranscript,
+            startListening,
+            stopListening,
+            recognition= {lang:'en-UK'},
+            browserSupportsSpeechRecognition,
+            listening } = this.props
 
-//     if (!browserSupportsSpeechRecognition) {
-//       return null
-//     }
-//     console.log(transcript)
-//     let transcript1 = transcript;
-//     showflag = 0;
-//     numdays = 1 ;
-//     stkName = '';
-//     let transcriptcount = 0;
-//     let finalText ='';
-//     let transcriptArr = transcript1.split(' ')
-//     if(transcriptArr.length>0)
-//     {
-//       transcriptcount = 1;
-//       console.log(transcriptcount)
-//     }
+    if (!browserSupportsSpeechRecognition) {
+      return null
+    }
+    console.log(transcript)
+    console.log(finaltranscript);
+    let transcript1 = transcript;
+    showflag = 0;
+    numdays = 1 ;
+    stkName = '';
+    let transcriptcount = 0;
+    let finalText ='';
+    let transcriptArr = transcript1.split(' ')
+    if(transcriptArr.length>0)
+    {
+      transcriptcount = 1;
+      console.log(transcriptcount)
+    }
 
-//     let j1 = 0;
-//         let k1 = 0;
-//         let predictioncounter = 0;
-//         let j_value = 0;
+    let j1 = 0;
+        let k1 = 0;
+        let predictioncounter = 0;
+        let j_value = 0;
 
-//         if(!listening && transcriptcount==1) {
-//           console.log('listening stopped');
-//           console.log(transcriptArr);
+        if(!listening && transcriptcount==1) {
+          console.log('listening stopped');
+          console.log(transcriptArr);
+          
+          
 
-//         for (j1 = 0; j1< transcriptArr.length; j1++){
-//           if ((transcriptArr[j1]==='predictions' || transcriptArr[j1]==='prediction' ||
-//               transcriptArr[j1]==='predict' || transcriptArr[j1]==='predict') &&
-//               (transcriptArr[j1+1]==='of' || transcriptArr[j1+1]==='for')){
-//                 predictioncounter = 1;
-//                 showflag=1;
-//                 j_value = j1;
-//               }}
+        for (j1 = 0; j1< transcriptArr.length; j1++){
+          if ((transcriptArr[j1]==='predictions' || transcriptArr[j1]==='prediction' ||
+              transcriptArr[j1]==='predict' || transcriptArr[j1]==='predict') &&
+              (transcriptArr[j1+1]==='of' || transcriptArr[j1+1]==='for')){
+                predictioncounter = 1;
+                showflag=1;
+                j_value = j1;
+              }}
               
-//                 for(  k1 =0; k1<transcriptArr.length;k1++)
-//                 {
-//                   if ((transcriptArr[k1]==='dont' || //transcriptArr[k1]==='do not' ||
-//                         transcriptArr[k1]==='not')&& predictioncounter==1){
-//                           showflag=2;
-//                           //this.props.SpeechUpdate(stkName, showflag, numdays)
-//                             console.log(stkName);
-//                             //console.log(temparr);
-//                             console.log(showflag);
-//                       }}
+                for(  k1 =0; k1<transcriptArr.length;k1++)
+                {
+                  if ((transcriptArr[k1]==='dont' || //transcriptArr[k1]==='do not' ||
+                        transcriptArr[k1]==='not')&& predictioncounter==1){
+                          showflag=2;
+                          this.setState({showflag:2});
+                          //this.props.SpeechUpdate(stkName, showflag, numdays)
+                            console.log(stkName);
+                            //console.log(temparr);
+                            console.log(showflag);
+                      }}
 
-//                       if(showflag===1){
-//                         console.log(j_value);
-//                             let temparr = transcriptArr.slice(-(transcriptArr.length -j_value-2))
-//                               if(temparr[temparr.length - 1]==='please') {
-//                                let temparr1 = temparr.slice(0,-1) 
-//                                stkName = temparr1.join(" "); 
-//                               // this.props.SpeechUpdate(stkName, showflag, numdays);
-//                               }
-//                               else {
-//                                stkName = temparr.join(" ");
-//                               // this.props.SpeechUpdate(stkName, showflag, numdays);
-//                               }
-//                                 console.log(stkName);
-//                                 console.log(temparr);
-//                                 console.log(showflag);
-//                                 j_value=0;
-//                       }
-//                       else {
-//                         showflag=3;
-//                         console.log(stkName);
-//                         console.log(showflag);
-//                         //this.props.SpeechUpdate(stkName, showflag, numdays);
-//                       }
-        
-//     }
+                      if(showflag===1){
+                        console.log(j_value);
+                            let temparr = transcriptArr.slice(-(transcriptArr.length -j_value-2))
+                              if(temparr[temparr.length - 1]==='please') {
+                               let temparr1 = temparr.slice(0,-1) 
+                               stkName = temparr1.join(" ");
+                              //  this.setState({showflag:1,
+                              //                  stkName: stkName}); 
+                              // this.props.SpeechUpdate(stkName, showflag, numdays);
+                              }
+                              else {
+                               stkName = temparr.join(" ");
+                              //  this.setState({showflag:1,
+                              //   stkName: stkName});
+                              // this.props.SpeechUpdate(stkName, showflag, numdays);
+                              }
+                              
+                                console.log(stkName);
+                                global_stock_name = stkName;
+                                global_show_flag = showflag;
+                                console.log(temparr);
+                                console.log(showflag);
+                                j_value=0;
+                      }
+                      else {
+                        showflag=3;
+                        // this.setState({showflag:3,
+                        //                });
+                        console.log(stkName);
+                        console.log(showflag);
+                        //this.props.SpeechUpdate(stkName, showflag, numdays);
+                      }
+    }
 
-//     // if(showflag===1 && !listening)
-//     // { console.log('calling parent function');
-//     //   this.props.SpeechUpdate(stkName, showflag, numdays);
-//     // }
-
-//     return (
-//       <div>
-//         <button onClick={resetTranscript}>Reset</button>
-//         <button onClick={startListening}>Start</button>
-//         <button onClick={stopListening}>Stop</button>
-//         <span>{transcript} 
+    return (
+      <div>
+        <button onClick={resetTranscript}>Reset</button>
+        <button onClick={startListening}>Start</button>
+    
+        <span>{transcript} 
       
-//         </span>
+        </span>
         
-//       </div>
-//     )
-//   }
-// }
+      </div>
+    )
+  }
+}
 
-// Dictaphone.propTypes = propTypes;
+Dictaphone.propTypes = propTypes;
 
-// let Speech_rec =  SpeechRecognition({autoStart: true, continuous: false})(Dictaphone);
+let Speech_rec =  SpeechRecognition({autoStart: true, continuous: false})(Dictaphone);
 
 
 
@@ -174,6 +187,8 @@ class App extends Component {
   constructor(props){
     super(props);
     this.state={
+    //voice_novoice_flag :0, // default 0 for no voice. 1 for voice
+    switched: false,// default false for no voice. true for voice
     flagtoInititate:0,
     props_stk:'',
     props_show_flags:'',
@@ -182,13 +197,14 @@ class App extends Component {
     close :[],
     high : [],
     low : [],
+    volume :[],
     loaded: false,
     errormsg:'',
     StockCode: '',
     StockName: '',
     User_input_StockName: '',
-    label: "Click Here",
-    no_of_epochs : 10,
+    label: "Activate Voice Interaction",
+    no_of_epochs : 30,
     market_type :'' ,
     region: '',
     marketopen:'',
@@ -210,6 +226,8 @@ class App extends Component {
 }
 //   this.SpeechUpdate = this.SpeechUpdate.bind(this);
 //  this.loadData= this.loadData.bind(this);
+this.toggleSwitch = this.toggleSwitch.bind(this);
+this.confirm = this.confirm.bind(this);
 }
 
 // SpeechUpdate =(stkcode,showflag,numdays)=>{
@@ -247,11 +265,27 @@ class App extends Component {
 // }
 // }
 
+confirm(){ 
+  if(global_show_flag===1){
+  this.setState({ User_input_StockName: global_stock_name
+  })}
+}
+
+toggleSwitch() {
+  this.setState({ switched:!this.state.switched});
+  if(this.state.switched===true)
+  {  this.setState({ label:'Activate Voice Interaction'});
+}
+else{
+   this.setState({ label:'Deactivate Voice Interaction'});
+}
+  console.log(this.state.switched);
+}
 
 gettingName_to_Ticker = async (e)=>{
   this.setState({ errormsg: "Loading the data..",
                  // StcokCode:e.target.elements.Stcokcode.value,
-                  label: "Feching the data .."
+                 // label: "Feching the data .."
                 });
   // try{
   //     e.preventDefault();
@@ -268,7 +302,8 @@ gettingName_to_Ticker = async (e)=>{
   let timezone = [];
   let currency = [];
   let matchscore = [];
-
+  console.log(global_stock_name);
+  
   try{
       await axios.get(`https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${this.state.User_input_StockName}&apikey=${API_KEY}`)
       .then(res => {
@@ -313,14 +348,11 @@ gettingName_to_Ticker = async (e)=>{
     this.setState({errormsg:"Unable to load the Data to State Ticker"})
   }
   
-  
-  
 
   if (this.state.tickerloaded === true){
     console.log("Ticker State Loaded");
     this.setState({ errormsg: "Ticker State Loaded"});
     this.gettingdata();
-
 
   }
   else
@@ -333,7 +365,8 @@ gettingName_to_Ticker = async (e)=>{
 gettingdata = async (e)=>{
     this.setState({ errormsg: "Loading the data...",
                    // StcokCode:e.target.elements.Stcokcode.value,
-                    label: "Feching the data ..."  });
+                    //label: "Feching the data ..."
+                    });
     // try{
     //     e.preventDefault();
         // const StcokCode=e.target.elements.Stcokcode.value;
@@ -344,6 +377,7 @@ gettingdata = async (e)=>{
     let high = [];
     let low = [];
     let dates = [];
+    let volume = [];
 
     try{
         await axios.get(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${this.state.StockCode}&outputsize=full&apikey=${API_KEY}`)
@@ -358,12 +392,13 @@ gettingdata = async (e)=>{
        // console.log(datesreverse);
         console.log(Object.values(arr1[0]));
 
-        for(let i =0; i<500;i++)
+        for(let i =0; i<1000;i++)
         { open[i] = parseFloat(Object.values(arr1[i])[0]);
           close[i] = parseFloat(Object.values(arr1[i])[3]);  
           high[i] = parseFloat(Object.values(arr1[i])[1]);
           low[i] = parseFloat(Object.values(arr1[i])[2]);
           dates[i] = Dates [i];
+          volume[i] = parseFloat(Object.values(arr1[i])[4])
         }
 
 
@@ -373,10 +408,11 @@ gettingdata = async (e)=>{
                         high:high.reverse(),
                         low:low.reverse(),
                         Dates: dates.reverse(),
+                        volume: volume.reverse(),
                         loaded: true});
 
-                        console.log(this.state.close);
-                        console.log(this.state.Dates);
+                        console.log(this.state.close, this.state.Dates, this.state.volume);
+                      //  console.log(this.state.Dates);
         }
     );} 
 
@@ -384,8 +420,6 @@ gettingdata = async (e)=>{
             console.error(err);
       this.setState({errormsg:"Unable to load the Data to State"})
     }
-    
-    
     
 
     if (this.state.loaded === true){
@@ -404,169 +438,169 @@ gettingdata = async (e)=>{
 
   datamodel = async (e)=>{ 
 
-  if(this.state.cnnflag ===1) {
-     
-    // Data preperation and model training CNN
-        
-        
-        const optimizer = tf.train.adam(this.state.learning_rate);
 
+  // if(this.state.cnnflag ===1) {
+     
+    // Data preperation and model training 
+        const optimizer = tf.train.adam(this.state.learning_rate);
         const full_input_data = [];
         const full_target_data = this.state.close;
         const testing_data = [];
         const training_data = [];
         const training_output_data = [];
         const actual_data =[];
-
-        const test_split_percent = this.state.test_split_percent;
-
-
-        for(let k =0; k<500;k++)
-        { full_input_data[k] = [this.state.open[k],this.state.high[k],this.state.low[k]];
+        let date_seconds = [];
+        for (let i = 0; i < 1000; i++) {
+          date_seconds.push(new Date(this.state.Dates[i] + 'T00:00:00.000').getTime())
+          
+        }
+        var test_split_percent = this.state.test_split_percent;
+        for(let k =0; k<1000;k++)
+        { //full_input_data[k] = [date_seconds[k], this.state.open[k],this.state.high[k],this.state.low[k]];
+          full_input_data[k] = [ this.state.open[k],this.state.high[k],this.state.low[k]];
         }
 
-        
-
+        console.log(date_seconds);
         console.log(full_input_data);
         console.log(full_target_data);
 
-        const num_of_observations = full_input_data.length;
+        var num_of_observations = full_input_data.length;
         if(num_of_observations !== full_target_data.length){
           this.setState({errormsg : "Input and target data have different number of observations"});
         }
+        var num_of_test_observations = Math.round(num_of_observations * test_split_percent);
+        var num_of_train_observations = num_of_observations - num_of_test_observations;
 
-        const num_of_test_observations = Math.round(num_of_observations * test_split_percent);
-        const num_of_train_observations = num_of_observations - num_of_test_observations;
-
-        const input_dimensions = full_input_data[0].length;
+        var input_dimensions = full_input_data[0].length;
           console.log('model buiilding');
           console.log('trainset');
-          console.log(full_input_data.slice(0,400));
+          console.log(full_input_data.slice(0,800));
           console.log('train output');
-          console.log(this.state.close.slice(0,400));
+          console.log(this.state.close.slice(0,800));
           console.log('testset');
-          console.log(full_input_data.slice(400,500));
-
+          console.log(full_input_data.slice(800,1000));
           console.log('test output');
-          console.log(this.state.close.slice(400,500));
+          console.log(this.state.close.slice(800,1000));
 
         // Creating 2D tensor for input feature data
-        
-        const trainset = tf.tensor2d(full_input_data.slice(0,400),[400,3]);
+        var trainset = tf.tensor2d(full_input_data.slice(0,800));
+        //var x_train = tf.tensor2d(full_input_data.slice(0,800));
         console.log(trainset);
         // Creating 2D tensor for output data
-        const trainset_output = tf.tensor1d(this.state.close.slice(0,400));
+        var trainset_output = tf.tensor1d(this.state.close.slice(0,800));
+        //var y_train = tf.tensor1d(this.state.close.slice(0,800));
         // Creating 2D tensor for test input data
-        const testset = tf.tensor2d(full_input_data.slice(400,500),[100,3]);
-
-        const testset_output = tf.tensor1d(this.state.close.slice(400,500));
+        var testset = tf.tensor2d(full_input_data.slice(800,1000));
+        //var x_test = tf.tensor2d(full_input_data.slice(800,1000));
+        // Creating 2D tensor for test output data
+        var testset_output = tf.tensor1d(this.state.close.slice(800,1000));
+        //var y_test = tf.tensor1d(this.state.close.slice(800,1000),[200,1]);
+        // // Normalisation of training data
+        // let inputMax = x_train.max();
+        // let inputMin = x_train.min();  
+        // let labelMax = y_train.max();
+        // let labelMin = y_train.min();    
+        // let normalizedInputs = x_train.sub(inputMin).div(inputMax.sub(inputMin));
+        // let normalizedLabels = y_train.sub(labelMin).div(labelMax.sub(labelMin));
+        // // Normalisation of testing data
+        // let x_test_inputMax = x_test.max();
+        // let x_test_inputMin = x_test.min();  
+        // let x_test_labelMax = x_test.max();
+        // let x_test_labelMin = x_test.min();    
+        // let x_test_normalizedInputs = x_test.sub(x_test_inputMin).div(x_test_inputMax.sub(x_test_inputMin));
+        // let x_test_normalizedLabels = x_test.sub(x_test_labelMin).div(x_test_labelMax.sub(x_test_labelMin));
 
         // building the neural network
-        const model = tf.sequential();
-
+        let model = tf.sequential();
         model.add(tf.layers.dense({ inputShape : [3], activation :"relu", units : 5,}))
-
-        model.add(tf.layers.dense({ inputShape : [5], activation :"relu", units : 6,}))
-        model.add(tf.layers.dense({ inputShape : [6], activation :"relu", units : 5,}))
-        model.add(tf.layers.dense({ inputShape : [5], activation :"relu", units : 4,}))
-
-        model.add(tf.layers.dense({ inputShape : [4], activation :"relu", units : 3,}))
-
+        model.add(tf.layers.dense({ inputShape : [100], activation :"relu", units : 6,}))
+        model.add(tf.layers.dense({ inputShape : [100], activation :"relu", units : 5,}))
+        model.add(tf.layers.dense({ inputShape : [100], activation :"relu", units : 4,}))
+        model.add(tf.layers.dense({ inputShape : [50], activation :"relu", units : 3,}))
         model.add(tf.layers.dense({ inputShape : [3], activation :"relu", units : 1,}))
-
-        await model.compile({loss: 'meanSquaredError', optimizer: optimizer, metrics: ['mse']});
-            
         //training the model
+        await model.compile({loss: 'meanSquaredError', optimizer: optimizer, metrics: ['mse']});
         const startTime = Date.now();
         this.setState({errormsg:"Training the model..."});
-        model.fit(trainset,trainset_output,
-                  {epochs: this.state.no_of_epochs, 
-                   
-                   callbacks: {
-                                onEpochEnd: async(epoch)=>{
-                                  console.log("Epoch: "+ epoch );
-                                  await tf.nextFrame();
-                                },
-                           }
-                  })
-        .then(async (history) => {
-          this.setState({errormsg:"Model trained successfully"});
-          console.log('DONE !. it took ', Date.now() - startTime , ' milli seconds');
-          console.log(history); 
-          const resullt = await model.predict(testset);
-          console.log(resullt.print());
-          const values = resullt.dataSync();
-          const arr_resullt = Array.from(values);
-          
-          console.log(values);
-          console.log(arr_resullt[0]);
-         
-          var arr_loss = Object.values(history['history']['loss']);
-          var arr_mse = Object.values(history['history']['mse']);
-          console.log(arr_loss);
-          console.log(arr_mse);
-          this.setState({ loss_arr : arr_loss,
-                          mse_arr : arr_mse,
-                          model_trained : 1});
+        // await model.fit(trainset,trainset_output,
+        //           {epochs: this.state.no_of_epochs, 
+        //            callbacks: {
+        //                         onEpochEnd: async(epoch)=>{
+        //                           console.log("Epoch: "+ epoch );
+        //                           await tf.nextFrame();
+        //                         },
+        //                    }
+        //           })
 
-        }) }
+                   await model.fit(trainset,trainset_output,
+                    {epochs: this.state.no_of_epochs, 
+                     // batchSize : 25,
+                    validationSplit :  .2,
+                    verbose : 1,
+                     callbacks: {
+                                  onEpochEnd: async(epoch, logs, onEpochProcessed)=>{
+                                    console.log("Epoch " + epoch );
+                                    await tf.nextFrame();
+                                  },
+                             }
+                    })
+
+                    .then(async (history) => {
+                      this.setState({errormsg:"Model trained successfully"});
+                      console.log('DONE !. it took ', Date.now() - startTime , ' milli seconds');
+                      console.log(history); 
+                      var resullt = await model.predict(testset, {batchSize:25});
+                  //  console.log(await model.predict(trainset));
+                      console.log(resullt.print());
+                      var values = resullt.dataSync();
+                      var arr_resullt = Array.from(values);
+                      
+                      console.log(values);
+                      console.log(arr_resullt[0]);
+                     
+                      var arr_loss = Object.values(history['history']['loss']);
+                      var arr_mse = Object.values(history['history']['mse']);
+                      console.log(arr_loss);
+                      console.log(arr_mse);
+                      this.setState({ loss_arr : arr_loss,
+                                      mse_arr : arr_mse,
+                                      model_trained : 1});
+            
+                    })   
+                    
+                   // var testResult =await  model.evaluate(x_test, y_test);
+                   // onFinished(testResult);
+                  //console.log(Object.testResult.dataSync());
+
+        // .then(async (history) => {
+        //   this.setState({errormsg:"Model trained successfully"});
+        //   console.log('DONE !. it took ', Date.now() - startTime , ' milli seconds');
+        //   console.log(history); 
+        //   var resullt = await model.predict(testset);
+        // console.log(await model.predict(trainset));
+        //   console.log(resullt.print());
+        //   var values = resullt.dataSync();
+        //   var arr_resullt = Array.from(values);
+          
+        //   console.log(values);
+        //   console.log(arr_resullt[0]);
+         
+        //   var arr_loss = Object.values(history['history']['loss']);
+        //   var arr_mse = Object.values(history['history']['mse']);
+        //   console.log(arr_loss);
+        //   console.log(arr_mse);
+        //   this.setState({ loss_arr : arr_loss,
+        //                   mse_arr : arr_mse,
+        //                   model_trained : 1});
+
+        // })
+
       //   trainset.dispose();
       //   trainset_output.dispose();
       //   testset.dispose();
       //   testset_output.dispose();
-      }
-    
-
-        // const testing_data = [this.state.open.slice(400,500),this.state.high.slice(400,500),this.state.low.slice(400,500)];
-        // console.log(testing_data[0]);
-        // const training_data = [this.state.open.slice(0,400),this.state.high.slice(0,400),this.state.low.slice(0,400)];
-        // console.log(training_data);
-        // const training_output_data = this.state.close.slice(0,400);
-        // console.log(training_output_data);
-        // const actual_data = this.state.close.slice(400,500);
-        // console.log(actual_data); 
-
-
-        // // Generate some synthetic data for training.
-        // const tf_training_data = tf.tensor2d(training_data, [3,400]);
-        // const tf_outputdata = tf.tensor2d(training_output_data, [1,400]);
-        // const tf_testing_data = tf.tensor2d(testing_data, [3,100]);
-
-        //     const model = tf.sequential();
-        //     await model.add(tf.layers.dense({units:1,
-        //                                      inputShape: [3] }));
-
-        //  // Prepare the model for training: Specify the loss and the optimizer.
-        //     await model.compile({
-        //                           loss:'meanSquaredError',
-        //                           Optimizer:'sgd'});
-
-        //  // Train the model using the data.
-        //     await model.fit (tf_training_data,tf_outputdata, {epochs:10});
-        //     const testing_result = await model.predict(tf_testing_data);
-
-        //     console.log(testing_result);
-        //     console.log(actual_data);
-
-            // const model = tf.sequential();
-            // await model.add(tf.layers.dense({units: 1, inputShape: [2]}));
-            
-            // // Prepare the model for training: Specify the loss and the optimizer.
-            // await model.compile({loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['mse']});
-            
-            // // Generate some synthetic data for training.
-            // const xs = tf.tensor2d(training_data, [3, 400]);
-            // const ys = tf.tensor2d(training_output_data, [400, 1]);
-            
-            // // Train the model using the data.
-            // await model.fit(xs, ys).then(() => {
-            //   // Use the model to do inference on a data point the model hasn't seen before:
-            //   // Open the browser devtools to see the output
-            //   model.predict(tf.tensor2d(testing_data, [3, 100])).print();
-            //   //  console.log(resul);
-            //   //  console.log(typeof(resul));
-               
-            //    });
+     // }
+    }
   
 
   wrapperFunction = (event) => {
@@ -588,6 +622,10 @@ gettingdata = async (e)=>{
 
   
   render() {
+
+   // let Speech_rec =  SpeechRecognition({autoStart: true, continuous: false})(Dictaphone);
+
+
 
     if(this.state.model_trained ===1)
     { 
@@ -720,13 +758,9 @@ gettingdata = async (e)=>{
           )
     }
 
+
+
     
-
-
-
-
-
-
 
 
     return (
@@ -735,14 +769,20 @@ gettingdata = async (e)=>{
           <div className="App">
         <img src={logo} className="App-logo" alt="logo" />
             <div> 
+           
+            
+            <div>
+             <Speech_rec/>
+            </div>
+ <button onClick={this.confirm}>Confirm</button> 
             {/* <SpeechRecognition> {this.loadData.bind()}</SpeechRecognition> */}
-            {this.loadData}
+            {/* {this.loadData} */}
               <p>{this.state.errormsg}</p>
               <p>{this.state.StockCode}</p>
               <p>{this.state.StockName}</p>
               <p>{this.state.final_transcript}</p>
               <p>{this.state.User_input_StockName}</p>
-              <p>{this.state.speechrec}</p>
+
              
               <input
                 type="text"
